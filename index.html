@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>射阳岛悦达高尔夫 - 거리측정</title>
+    <title><span lang="zh">射阳岛悦达高尔夫</span> - 거리측정</title>
     <style>
         * {
             margin: 0;
@@ -16,6 +16,15 @@
             background: linear-gradient(135deg, #dbeafe 0%, #bbf7d0 50%, #fef3c7 100%);
             min-height: 100vh;
             padding: 12px;
+        }
+
+        /* 중국어는 楷体로 표시 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        *:lang(zh), *:lang(zh-CN) {
+            font-family: 'KaiTi', '楷体', 'STKaiti', 'Kaiti SC', serif !important;
         }
 
         .container {
@@ -257,25 +266,21 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
+        .main-distance .distance-row {
+            margin: 10px 0;
+        }
+
         .main-distance .value {
-            font-size: 64px;
+            font-size: 48px;
             font-weight: 900;
-            line-height: 1;
+            line-height: 1.2;
             text-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
 
         .main-distance .unit {
-            font-size: 20px;
-            margin-top: 6px;
+            font-size: 18px;
+            margin-left: 8px;
             font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .main-distance .meter-value {
-            font-size: 28px;
-            font-weight: 700;
-            margin-top: 8px;
-            opacity: 0.9;
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
@@ -420,8 +425,8 @@
         <!-- 헤더 -->
         <div class="card header">
             <div>
-                <h1>射阳悦达高尔夫球会<br><span style="font-size: 14px; font-family: -apple-system, sans-serif;">(강소성 열달골프클럽)</span></h1>
-                <p class="subtitle">实时距离测量系统</p>
+                <h1><span lang="zh">射阳悦达高尔夫球会</span><br><span style="font-size: 14px; font-family: -apple-system, sans-serif;">(강소성 열달골프클럽)</span></h1>
+                <p class="subtitle" lang="zh">实时距离测量系统</p>
             </div>
             <div class="flag">🚩</div>
         </div>
@@ -450,10 +455,15 @@
                 </div>
 
                 <div class="main-distance">
-                    <div class="label">그린 중앙까지</div>
-                    <div class="value" id="greenDistance">0</div>
-                    <div class="unit">야드</div>
-                    <div class="meter-value" id="greenDistanceMeter">0m</div>
+                    <div class="label"><span lang="zh">グリーンセンターまで</span> / 그린 중앙까지</div>
+                    <div class="distance-row">
+                        <span class="value" id="greenDistance">0</span>
+                        <span class="unit">야드<span lang="zh">(码)</span></span>
+                    </div>
+                    <div class="distance-row">
+                        <span class="value" id="greenDistanceMeter">0</span>
+                        <span class="unit">미터<span lang="zh">(米)</span></span>
+                    </div>
                 </div>
 
                 <!-- 해저드 거리 (있는 홀만 표시) -->
@@ -488,7 +498,7 @@
         <!-- 푸터 -->
         <div class="footer">
             <p>📱 실제 GPS 좌표 기반 정확한 거리 측정</p>
-            <p>射阳岛悦达高尔夫球会 | 18홀 Par 72</p>
+            <p><span lang="zh">射阳岛悦达高尔夫球会</span> | 18홀 Par 72</p>
             <p id="coordsInfo" style="color: #d1d5db; margin-top: 8px;"></p>
         </div>
     </div>
@@ -653,6 +663,11 @@
             return Math.round(meters * 1.09361);
         }
 
+        // 숫자에 콤마 추가
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
         // 홀 버튼 생성
         function createHoleButtons() {
             const container = document.getElementById('holeButtons');
@@ -742,8 +757,8 @@
                 hole.green.lat, hole.green.lng
             );
 
-            document.getElementById('greenDistance').textContent = metersToYards(greenDist);
-            document.getElementById('greenDistanceMeter').textContent = `${Math.round(greenDist)}m`;
+            document.getElementById('greenDistance').textContent = formatNumber(metersToYards(greenDist));
+            document.getElementById('greenDistanceMeter').textContent = formatNumber(Math.round(greenDist));
             
             document.getElementById('locationBadge').textContent = 
                 `📍 위치 확인 (정확도: ${currentLocation.accuracy.toFixed(0)}m)`;
@@ -769,9 +784,9 @@
                     hazardItem.className = 'hazard-item';
                     hazardItem.innerHTML = `
                         <div class="hazard-label">${hazard.name}</div>
-                        <div class="hazard-value">${metersToYards(hazardDist)}</div>
-                        <div class="hazard-unit">야드</div>
-                        <div class="hazard-meter">${Math.round(hazardDist)}m</div>
+                        <div class="hazard-value">${formatNumber(metersToYards(hazardDist))}</div>
+                        <div class="hazard-unit">야드<span lang="zh">(码)</span></div>
+                        <div class="hazard-meter">${formatNumber(Math.round(hazardDist))} 미터<span lang="zh">(米)</span></div>
                     `;
                     hazardDistances.appendChild(hazardItem);
                 });
