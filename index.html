@@ -720,17 +720,22 @@
                     
                     // 해저드 좌표 파싱 (여러 개 가능)
                     if (hazardCoords) {
-                        const hazardList = hazardCoords.split(/\s+/).filter(s => s.includes(','));
-                        hazardList.forEach((hazard, idx) => {
-                            const hazardParts = hazard.split(',').map(s => s.trim());
-                            if (hazardParts.length === 2) {
-                                hole.hazards.push({
-                                    name: `해저드${hazardList.length > 1 ? idx + 1 : ' 앞'}`,
-                                    lat: parseFloat(hazardParts[0]),
-                                    lng: parseFloat(hazardParts[1])
-                                });
-                            }
-                        });
+                        // 좌표 쌍을 찾기: "위도, 경도" 형식
+                        // 예: "33.791698, 120.334275" 또는 "33.793345, 120.329603 33.793609, 120.329822"
+                        const coordPattern = /(\d+\.\d+)\s*,\s*(\d+\.\d+)/g;
+                        let match;
+                        let hazardIndex = 0;
+                        
+                        while ((match = coordPattern.exec(hazardCoords)) !== null) {
+                            hazardIndex++;
+                            hole.hazards.push({
+                                name: hazardIndex === 1 && hazardCoords.match(coordPattern).length === 1 
+                                    ? '해저드 앞' 
+                                    : `해저드${hazardIndex}`,
+                                lat: parseFloat(match[1]),
+                                lng: parseFloat(match[2])
+                            });
+                        }
                     }
                     
                     GOLF_COURSE.holes.push(hole);
@@ -922,17 +927,24 @@
 
             // 샷 거리 표시 (이전 위치가 있을 때만)
             const shotDistanceSection = document.getElementById('shotDistanceSection');
+            
+            console.log('이전 위치:', previousLocation);
+            console.log('현재 위치:', currentLocation);
+            
             if (previousLocation) {
                 const shotDist = calculateDistance(
                     previousLocation.lat, previousLocation.lng,
                     currentLocation.lat, currentLocation.lng
                 );
                 
+                console.log('샷 거리:', shotDist, '미터');
+                
                 document.getElementById('shotDistanceYard').textContent = formatNumber(metersToYards(shotDist));
                 document.getElementById('shotDistanceMeter').textContent = formatNumber(Math.round(shotDist));
                 
                 shotDistanceSection.style.display = 'block';
             } else {
+                console.log('이전 위치 없음 - 샷 거리 숨김');
                 shotDistanceSection.style.display = 'none';
             }
 
