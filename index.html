@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><span lang="zh">射阳岛悦达高尔夫</span> - 거리측정</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #dbeafe 0%, #bbf7d0 50%, #fef3c7 100%);
+            min-height: 100vh;
+            padding: 10px 6px;
+        }
+
+        /* 중국어는 楷体로 표시 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        *:lang(zh), *:lang(zh-CN) {
+            font-family: 'KaiTi', '楷体', 'STKaiti', 'Kaiti SC', serif !important;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 0 2px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 14px 10px;
+            margin-bottom: 2px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+            overflow: visible;
+            box-sizing: border-box;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .header {
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3)), url('hole-images/yuedagolfclub.jpeg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 32px 18px !important;
+            min-height: 140px;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.3));
+            border-radius: 20px 20px 0 0;
+        }
+
+        .header > div {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5);
+            line-height: 1.5;
+        }
+
+        .header h1 .korean {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .header h1 .chinese {
+            font-family: 'KaiTi', '楷体', 'STKaiti', 'Kaiti SC', serif;
+        }
+
+        .header .flag {
+            font-size: 36px;
+            filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.8));
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 11px;
+            margin-top: 10px;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .subtitle .korean {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .subtitle .chinese {
+            font-family: 'KaiTi', '楷体', 'STKaiti', 'Kaiti SC', serif;
+        }
+
+        .hole-selector {
+            margin: 14px 0;
+        }
+
+        .hole-selector label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .holes {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 3px;
+        }
+
+        .hole-btn {
+            padding: 8px 2px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            color: #0c4a6e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 9px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .hole-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .hole-btn:active {
+            transform: scale(0.95);
+        }
+
+        .hole-btn.active {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: white;
+            transform: scale(1.08);
+            box-shadow: 0 6px 12px rgba(22, 163, 74, 0.4);
+        }
+
+        .hole-number {
+            font-size: 20px;
+            display: block;
+            font-weight: 800;
+        }
+
+        .hole-par {
+            font-size: 8px;
+            display: block;
+            margin-top: 2px;
+            opacity: 0.9;
+        }
+
+        .measure-btn {
+            width: 100%;
+            padding: 18px 12px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 14px;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+            white-space: nowrap;
+        }
+
+        .measure-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.5);
+        }
+
+        .measure-btn:active {
+            transform: scale(0.98);
+        }
+
+        .measure-btn:disabled {
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+            cursor: not-allowed;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .error {
+            margin-top: 14px;
+            padding: 12px;
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            border-radius: 8px;
+            color: #991b1b;
+            font-size: 12px;
+        }
+
+        .error-tip {
+            font-size: 11px;
+            color: #dc2626;
+            margin-top: 6px;
+        }
+
+        .location-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #1e40af;
+            margin-bottom: 14px;
+            border: 2px solid #93c5fd;
+            font-weight: 600;
+        }
+
+        .distance-display {
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-distance {
+            background: linear-gradient(135deg, #10b981, #059669, #047857);
+            border-radius: 20px;
+            padding: 24px 8px;
+            text-align: center;
+            color: white;
+            margin-bottom: 14px;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+            position: relative;
+            overflow: visible;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .main-distance::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+        }
+
+        .main-distance .label {
+            font-size: 14px;
+            opacity: 0.95;
+            margin-bottom: 10px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            white-space: nowrap;
+        }
+
+        .main-distance .distance-row {
+            margin: 10px 0;
+            white-space: nowrap;
+            overflow: visible;
+            width: 100%;
+            display: block;
+        }
+
+        .main-distance .value {
+            font-size: 26px;
+            font-weight: 900;
+            line-height: 1.4;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            display: inline-block;
+        }
+
+        .main-distance .unit {
+            font-size: 26px;
+            margin-left: 2px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        /* 작은 화면에서 더 작게 */
+        @media (max-width: 400px) {
+            .main-distance .value {
+                font-size: 22px;
+            }
+            .main-distance .unit {
+                font-size: 22px;
+            }
+        }
+
+        .hazard-section {
+            margin-top: 12px;
+            padding: 14px;
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+        }
+
+        /* 샷 거리 섹션 */
+        .shot-distance-section {
+            margin-top: 12px;
+            padding: 14px;
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+        }
+
+        .shot-distance-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 8px;
+            display: block;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .shot-distance-title .korean {
+            display: block;
+        }
+
+        .shot-distance-title .chinese {
+            display: block;
+        }
+
+        .shot-distance-value {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1e40af;
+            margin: 3px 0;
+            display: inline;
+        }
+
+        .shot-distance-unit {
+            font-size: 26px;
+            color: #1e3a8a;
+            font-weight: 700;
+            display: inline;
+            white-space: nowrap;
+        }
+
+        .shot-distance-meter {
+            font-size: 26px;
+            color: #1e3a8a;
+            margin-top: 4px;
+            font-weight: 700;
+            display: block;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 400px) {
+            .shot-distance-value {
+                font-size: 22px;
+            }
+            .shot-distance-unit {
+                font-size: 22px;
+            }
+            .shot-distance-meter {
+                font-size: 22px;
+            }
+        }
+
+        .hazard-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 8px;
+            display: block;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .hazard-title .korean {
+            display: block;
+        }
+
+        .hazard-title .chinese {
+            display: block;
+        }
+
+        .hazard-distances {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .hazard-item {
+            flex: 1;
+            min-width: 85px;
+            background: white;
+            padding: 14px 6px;
+            border-radius: 8px;
+            text-align: center;
+            overflow: visible;
+        }
+
+        .hazard-label {
+            font-size: 10px;
+            color: #92400e;
+            font-weight: 600;
+        }
+
+        .hazard-value {
+            font-size: 26px;
+            font-weight: bold;
+            color: #b45309;
+            margin: 3px 0;
+            display: inline;
+        }
+
+        .hazard-unit {
+            font-size: 26px;
+            color: #92400e;
+            font-weight: 700;
+            display: inline;
+            white-space: nowrap;
+        }
+
+        .hazard-meter {
+            font-size: 26px;
+            color: #78350f;
+            margin-top: 4px;
+            font-weight: 700;
+            display: block;
+            white-space: nowrap;
+        }
+
+        /* 작은 화면에서 더 작게 */
+        @media (max-width: 400px) {
+            .hazard-value {
+                font-size: 22px;
+            }
+            .hazard-unit {
+                font-size: 22px;
+            }
+            .hazard-meter {
+                font-size: 22px;
+            }
+        }
+            color: #92400e;
+        }
+
+        .hole-info {
+            text-align: center;
+            color: #6b7280;
+            font-size: 11px;
+            margin-top: 14px;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 36px 18px;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .welcome-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .welcome p {
+            color: #6b7280;
+            line-height: 1.5;
+            font-size: 13px;
+        }
+
+        .welcome .highlight {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .footer p {
+            margin: 3px 0;
+        }
+
+        .loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .minimap-container {
+            margin-top: 14px;
+            padding: 14px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+
+        .minimap-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .minimap {
+            width: 100%;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 헤더 -->
+        <div class="card header">
+            <div>
+                <h1>
+                    <span class="korean">강소성 사양도 열달골프클럽</span><br>
+                    <span class="chinese" lang="zh">(江苏省射阳岛悦达高尔夫球会)</span>
+                </h1>
+                <p class="subtitle">
+                    <span class="korean">지금 계신 곳에서 측정을 하시면 그린 중앙까지의 거리가 표시됩니다.</span><br>
+                    <span class="chinese" lang="zh">您现在所在的位置进行测量，就会显示到果岭中央的距离</span>
+                </p>
+            </div>
+            <div class="flag">🚩</div>
+        </div>
+
+        <!-- 홀 선택 -->
+        <div class="card">
+            <div class="hole-selector">
+                <label>현재 홀 선택 <span lang="zh">(选择当前球洞)</span></label>
+                <div class="holes" id="holeButtons"></div>
+            </div>
+        </div>
+
+        <!-- 측정 버튼 -->
+        <div class="card">
+            <button class="measure-btn" id="measureBtn" onclick="measureDistance()">
+                🎯 남은 거리 측정 <span lang="zh">(测量剩余距离)</span>
+            </button>
+            <div id="errorDiv"></div>
+        </div>
+
+        <!-- 결과 표시 -->
+        <div class="card" id="resultCard" style="display: none;">
+            <div class="distance-display">
+                <div style="text-align: center;">
+                    <span class="location-badge" id="locationBadge"></span>
+                </div>
+
+                <div class="main-distance">
+                    <div class="label">그린 중앙까지 <span lang="zh">(到果岭中央)</span></div>
+                    <div class="distance-row">
+                        <span class="value" id="greenDistance">0</span>
+                        <span class="unit">야드<span lang="zh">(码)</span></span>
+                    </div>
+                    <div class="distance-row">
+                        <span class="value" id="greenDistanceMeter">0</span>
+                        <span class="unit">미터<span lang="zh">(米)</span></span>
+                    </div>
+                </div>
+
+                <!-- 헤저드 거리 (있는 홀만 표시) -->
+                <div id="hazard1Section" style="display: none;">
+                    <div class="hazard-section">
+                        <div class="hazard-title">
+                            <span class="korean">⚠️ 헤저드1까지의 거리</span>
+                            <span class="chinese" lang="zh">(到障碍物1的距离)</span>
+                        </div>
+                        <div id="hazard1Description" style="font-size: 11px; color: #92400e; text-align: center; margin-bottom: 8px; line-height: 1.4;"></div>
+                        <div style="text-align: center; padding: 10px;">
+                            <div style="margin-bottom: 4px;">
+                                <span id="hazard1Yard" style="font-size: 24px; font-weight: bold; color: #92400e;">0</span>
+                                <span style="font-size: 18px; color: #92400e; font-weight: 600;"> 야드<span lang="zh">(码)</span></span>
+                            </div>
+                            <div>
+                                <span id="hazard1Meter" style="font-size: 24px; font-weight: bold; color: #92400e;">0</span>
+                                <span style="font-size: 18px; color: #92400e; font-weight: 600;"> 미터<span lang="zh">(米)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 헤저드2 거리 -->
+                <div id="hazard2Section" style="display: none;">
+                    <div class="hazard-section">
+                        <div class="hazard-title">
+                            <span class="korean">⚠️ 헤저드2까지의 거리</span>
+                            <span class="chinese" lang="zh">(到障碍物2的距离)</span>
+                        </div>
+                        <div id="hazard2Description" style="font-size: 11px; color: #92400e; text-align: center; margin-bottom: 8px; line-height: 1.4;"></div>
+                        <div style="text-align: center; padding: 10px;">
+                            <div style="margin-bottom: 4px;">
+                                <span id="hazard2Yard" style="font-size: 24px; font-weight: bold; color: #92400e;">0</span>
+                                <span style="font-size: 18px; color: #92400e; font-weight: 600;"> 야드<span lang="zh">(码)</span></span>
+                            </div>
+                            <div>
+                                <span id="hazard2Meter" style="font-size: 24px; font-weight: bold; color: #92400e;">0</span>
+                                <span style="font-size: 18px; color: #92400e; font-weight: 600;"> 미터<span lang="zh">(米)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 샷 거리 (이전 위치가 있을 때만 표시) -->
+                <div id="shotDistanceSection" style="display: none;">
+                    <div class="shot-distance-section">
+                        <div class="shot-distance-title">
+                            <span class="korean">🏌️ 방금 친 곳으로부터의 거리</span>
+                            <span class="chinese" lang="zh">(从刚打的地方的距离)</span>
+                        </div>
+                        <div style="text-align: center; margin-top: 10px;">
+                            <div style="margin-bottom: 8px;">
+                                <span class="shot-distance-value" id="shotDistanceYard">0</span>
+                                <span class="shot-distance-unit">야드<span lang="zh">(码)</span></span>
+                            </div>
+                            <div>
+                                <span class="shot-distance-value" id="shotDistanceMeter">0</span>
+                                <span class="shot-distance-unit">미터<span lang="zh">(米)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 홀 코스 맵 (이미지 없으면 숨김) -->
+                <div class="minimap-container" id="minimapContainer" style="display: none;">
+                    <div class="minimap-title">🗺️ 코스 레이아웃 <span lang="zh">(球场布局)</span></div>
+                    <img id="holeMapImage" class="minimap" style="width: 100%; height: auto; border-radius: 10px;" alt="홀 맵">
+                </div>
+
+                <div class="hole-info" id="holeInfo"></div>
+            </div>
+        </div>
+
+        <!-- 초기 안내 -->
+        <div class="card welcome" id="welcomeCard">
+            <div class="welcome-icon">🎯</div>
+            <p>
+                홀을 선택하고<br>
+                <span class="highlight">'남은 거리 측정'</span> 버튼을 눌러주세요
+            </p>
+        </div>
+
+        <!-- 푸터 -->
+        <div class="footer">
+            <p>📱 실제 GPS 좌표 기반 정확한 거리 측정 <span lang="zh">(基于实际GPS坐标的精确距离测量)</span></p>
+            <p><span lang="zh">射阳岛悦达高尔夫球会</span> | 18홀 Par 72</p>
+            <p id="coordsInfo" style="color: #d1d5db; margin-top: 8px;"></p>
+        </div>
+    </div>
+
+    <script>
+        // 射阳岛悦达高尔夫球会 - 실제 측정 좌표 데이터
+        // 구글 시트 설정
+        const SHEET_ID = '1SFYcb0BRbNdWjFHpYbSz7WCKlsinmXkEWfW5X4FMZu0';
+        const SHEET_NAME = '강소열달골프장';
+        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+        let GOLF_COURSE = {
+            name: "射阳岛悦达高尔夫球会",
+            totalPar: 72,
+            holes: []
+        };
+
+        // 도분법(DMS) 좌표를 십진법(DD)으로 변환
+        // 예: "335-47.5330, 120-5.20.0920" → {lat: 33.792217, lng: 120.333487}
+        function convertDMStoDD(dmsString) {
+            if (!dmsString || !dmsString.trim()) return null;
+            
+            try {
+                // 공백 제거 및 "도" 문자 제거
+                const cleaned = dmsString.trim().replace(/\s+/g, '').replace(/도/g, '-');
+                
+                // 쉼표로 위도/경도 분리
+                const parts = cleaned.split(',');
+                if (parts.length !== 2) {
+                    console.error('좌표 형식 오류 (쉼표 없음):', dmsString);
+                    return null;
+                }
+                
+                // 위도 파싱: "33-47.5330" → 33° 47.5330'
+                const latMatch = parts[0].match(/(\d{2,3})-(\d+)\.(\d+)/);
+                if (!latMatch) {
+                    console.error('위도 파싱 실패:', parts[0], '원본:', dmsString);
+                    return null;
+                }
+                
+                const latDeg = parseInt(latMatch[1].slice(-2)); // 마지막 2자리 = 도
+                const latMin = parseFloat(latMatch[2] + '.' + latMatch[3]); // 분
+                const lat = latDeg + (latMin / 60);
+                
+                // 경도 파싱: 두 가지 형식 지원
+                // 형식1: "120-5.20.0920" (도-분.초.밀리초)
+                // 형식2: "120-20.0920" (도-분.밀리초)
+                let lngMatch = parts[1].match(/(\d{2,3})-(\d+)\.(\d+)\.(\d+)/);
+                let lng;
+                
+                if (lngMatch) {
+                    // 형식1: 120-5.20.0920
+                    const lngDeg = parseInt(lngMatch[1]);
+                    const lngMin = parseFloat(lngMatch[3] + '.' + lngMatch[4]);
+                    lng = lngDeg + (lngMin / 60);
+                } else {
+                    // 형식2: 120-20.0920
+                    lngMatch = parts[1].match(/(\d{2,3})-(\d+)\.(\d+)/);
+                    if (!lngMatch) {
+                        console.error('경도 파싱 실패:', parts[1], '원본:', dmsString);
+                        return null;
+                    }
+                    const lngDeg = parseInt(lngMatch[1]);
+                    const lngMin = parseFloat(lngMatch[2] + '.' + lngMatch[3]);
+                    lng = lngDeg + (lngMin / 60);
+                }
+                
+                console.log(`좌표 변환: ${dmsString} → lat: ${lat.toFixed(6)}, lng: ${lng.toFixed(6)}`);
+                
+                return { lat, lng };
+            } catch (error) {
+                console.error('좌표 변환 오류:', dmsString, error);
+                return null;
+            }
+        }
+
+        // 구글 시트에서 데이터 로드
+        async function loadGolfCourseData() {
+            try {
+                console.log('=== 골프장 데이터 로드 시작 ===');
+                console.log('시트 URL:', SHEET_URL);
+                
+                const response = await fetch(SHEET_URL);
+                const text = await response.text();
+                
+                console.log('응답 받음, 길이:', text.length);
+                
+                // Google Sheets API 응답 파싱
+                const jsonData = JSON.parse(text.substring(47).slice(0, -2));
+                const rows = jsonData.table.rows;
+                
+                console.log('전체 행 수:', rows.length);
+                
+                GOLF_COURSE.holes = [];
+                
+                for (let i = 1; i < rows.length; i++) { // 첫 행은 헤더이므로 스킵
+                    const row = rows[i];
+                    if (!row.c || !row.c[0]) continue;
+                    
+                    const holeName = row.c[0]?.v || ''; // A열: 홀이름
+                    const par = row.c[1]?.v || ''; // B열: 파
+                    const greenCoords = row.c[2]?.v || ''; // C열: 그린중앙 (도분법)
+                    const hazard1Coords = row.c[3]?.v || ''; // D열: 헤저드1 (도분법)
+                    const hazard2Coords = row.c[4]?.v || ''; // E열: 헤저드2 (도분법)
+                    const description = row.c[5]?.v || ''; // F열: 설명
+                    
+                    console.log(`행 ${i}:`, holeName, '| 그린:', greenCoords);
+                    
+                    // 홀 번호 추출 (예: "1번홀" -> 1)
+                    const holeNumber = parseInt(holeName.match(/\d+/)?.[0] || '0');
+                    if (holeNumber === 0) {
+                        console.warn(`홀 번호 추출 실패:`, holeName);
+                        continue;
+                    }
+                    
+                    // Par 추출 (예: "PAR4" -> 4)
+                    const parNumber = parseInt(par.match(/\d+/)?.[0] || '4');
+                    
+                    // 그린 좌표 파싱 (도분법 → 십진법)
+                    const greenDD = convertDMStoDD(greenCoords);
+                    if (!greenDD) {
+                        console.warn(`${holeNumber}번홀 그린 좌표 파싱 실패:`, greenCoords);
+                        continue;
+                    }
+                    
+                    console.log(`${holeNumber}번홀 변환 성공:`, greenDD);
+                    
+                    const hole = {
+                        number: holeNumber,
+                        par: parNumber,
+                        green: {
+                            lat: greenDD.lat,
+                            lng: greenDD.lng
+                        },
+                        hazards: [],
+                        description: description || '' // 설명 추가
+                    };
+                    
+                    // 해저드1 좌표 파싱 (도분법 → 십진법)
+                    if (hazard1Coords && hazard1Coords.trim()) {
+                        const hazard1DD = convertDMStoDD(hazard1Coords);
+                        if (hazard1DD) {
+                            hole.hazards.push({
+                                name: '헤저드1',
+                                lat: hazard1DD.lat,
+                                lng: hazard1DD.lng
+                            });
+                        }
+                    }
+                    
+                    // 해저드2 좌표 파싱 (도분법 → 십진법)
+                    if (hazard2Coords && hazard2Coords.trim()) {
+                        const hazard2DD = convertDMStoDD(hazard2Coords);
+                        if (hazard2DD) {
+                            // 중복 체크
+                            const isDuplicate = hole.hazards.some(h => 
+                                Math.abs(h.lat - hazard2DD.lat) < 0.00001 && Math.abs(h.lng - hazard2DD.lng) < 0.00001
+                            );
+                            if (!isDuplicate) {
+                                hole.hazards.push({
+                                    name: '헤저드2',
+                                    lat: hazard2DD.lat,
+                                    lng: hazard2DD.lng
+                                });
+                            }
+                        }
+                    }
+                    
+                    GOLF_COURSE.holes.push(hole);
+                }
+                
+                // 홀 번호로 정렬
+                GOLF_COURSE.holes.sort((a, b) => a.number - b.number);
+                
+                console.log('=== 골프장 데이터 로드 완료 ===');
+                console.log('총 홀 수:', GOLF_COURSE.holes.length);
+                console.log('홀 목록:', GOLF_COURSE.holes.map(h => h.number));
+                console.log('전체 데이터:', GOLF_COURSE);
+                
+                // UI 초기화
+                initializeApp();
+                
+            } catch (error) {
+                console.error('골프장 데이터 로드 실패:', error);
+                alert('골프장 데이터를 불러올 수 없습니다. 인터넷 연결을 확인해주세요.');
+            }
+        }
+
+        let selectedHole = 1;
+
+        let currentLocation = null;
+        let previousLocation = null; // 이전 샷 위치 저장
+
+        // 거리 계산 (Haversine formula)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        // 미터를 야드로 변환
+        function metersToYards(meters) {
+            return Math.round(meters * 1.09361);
+        }
+
+        // 숫자에 콤마 추가
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // 앱 초기화
+        function initializeApp() {
+            createHoleButtons();
+            selectHole(1);
+        }
+
+        // 홀 버튼 생성
+        function createHoleButtons() {
+            const container = document.getElementById('holeButtons');
+            container.innerHTML = ''; // 기존 버튼 초기화
+            GOLF_COURSE.holes.forEach(hole => {
+                const btn = document.createElement('button');
+                btn.className = 'hole-btn';
+                btn.innerHTML = `
+                    <span class="hole-number">${hole.number}</span>
+                    <span class="hole-par">P${hole.par}</span>
+                `;
+                btn.onclick = () => selectHole(hole.number);
+                container.appendChild(btn);
+            });
+        }
+
+        // 홀 선택
+        function selectHole(holeNumber) {
+            selectedHole = holeNumber;
+            previousLocation = null; // 홀 변경 시 이전 샷 위치 리셋
+            
+            document.querySelectorAll('.hole-btn').forEach((btn, index) => {
+                btn.classList.toggle('active', index + 1 === holeNumber);
+            });
+
+            // 홀 변경 시 결과 화면 숨기고 안내 화면 표시
+            document.getElementById('resultCard').style.display = 'none';
+            document.getElementById('welcomeCard').style.display = 'block';
+            
+            console.log(`${holeNumber}번 홀 선택 - 측정 대기 중`);
+        }
+
+        // 거리 측정
+        function measureDistance() {
+            const btn = document.getElementById('measureBtn');
+            const errorDiv = document.getElementById('errorDiv');
+            
+            errorDiv.innerHTML = '';
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading">📍</span> 위치 확인 중... <span lang="zh">(确认位置中...)</span>';
+
+            if (!navigator.geolocation) {
+                errorDiv.innerHTML = `
+                    <div class="error">
+                        이 브라우저는 GPS를 지원하지 않습니다. <span lang="zh">(此浏览器不支持GPS)</span>
+                    </div>
+                `;
+                btn.disabled = false;
+                btn.innerHTML = '🎯 남은 거리 측정 <span lang="zh">(测量剩余距离)</span>';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    console.log('=== GPS 위치 수신 ===');
+                    console.log('수신된 좌표:', position.coords.latitude, position.coords.longitude);
+                    
+                    // 새로운 위치 객체 생성
+                    const newLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    };
+                    
+                    console.log('현재 저장된 위치:', currentLocation);
+                    
+                    // 이전 위치 저장 (현재 위치가 있을 때만)
+                    if (currentLocation) {
+                        previousLocation = { ...currentLocation };
+                        console.log('이전 위치로 저장:', previousLocation);
+                    } else {
+                        console.log('첫 측정이므로 이전 위치 없음');
+                    }
+                    
+                    // 현재 위치를 새 위치로 업데이트
+                    currentLocation = newLocation;
+                    console.log('새로운 현재 위치:', currentLocation);
+                    
+                    // 거리 표시
+                    displayDistances();
+                    
+                    btn.disabled = false;
+                    btn.innerHTML = '🎯 남은 거리 측정 <span lang="zh">(测量剩余距离)</span>';
+                },
+                (error) => {
+                    errorDiv.innerHTML = `
+                        <div class="error">
+                            위치를 가져올 수 없습니다 <span lang="zh">(无法获取位置)</span>: ${error.message}
+                            <div class="error-tip">💡 설정에서 위치 권한을 허용해주세요 <span lang="zh">(请在设置中允许位置权限)</span></div>
+                        </div>
+                    `;
+                    btn.disabled = false;
+                    btn.innerHTML = '🎯 남은 거리 측정 <span lang="zh">(测量剩余距离)</span>';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // 거리 표시
+        function displayDistances() {
+            const hole = GOLF_COURSE.holes.find(h => h.number === selectedHole);
+            
+            // 그린까지 거리
+            const greenDist = calculateDistance(
+                currentLocation.lat, currentLocation.lng,
+                hole.green.lat, hole.green.lng
+            );
+
+            document.getElementById('greenDistance').textContent = formatNumber(metersToYards(greenDist));
+            document.getElementById('greenDistanceMeter').textContent = formatNumber(Math.round(greenDist));
+            
+            document.getElementById('locationBadge').textContent = 
+                `📍 위치 확인 (정확도: ${currentLocation.accuracy.toFixed(0)}m)`;
+            
+            document.getElementById('holeInfo').textContent = 
+                `Hole ${hole.number} · Par ${hole.par}`;
+
+            // 헤저드 거리 계산 및 표시 (개별 박스)
+            const hazard1Section = document.getElementById('hazard1Section');
+            const hazard2Section = document.getElementById('hazard2Section');
+            
+            // 헤저드1 찾기
+            const hazard1 = hole.hazards.find(h => h.name === '헤저드1');
+            if (hazard1) {
+                const hazard1Dist = calculateDistance(
+                    currentLocation.lat, currentLocation.lng,
+                    hazard1.lat, hazard1.lng
+                );
+                
+                document.getElementById('hazard1Yard').textContent = formatNumber(metersToYards(hazard1Dist));
+                document.getElementById('hazard1Meter').textContent = formatNumber(Math.round(hazard1Dist));
+                
+                // 헤저드1 설명 필터링
+                const hazard1Desc = document.getElementById('hazard1Description');
+                if (hole.description && hole.description.trim()) {
+                    const desc = hole.description.trim();
+                    // "헤저드1" 또는 "헤저드 1" 포함 여부 확인
+                    if (desc.includes('헤저드1') || desc.includes('헤저드 1')) {
+                        hazard1Desc.textContent = desc;
+                        hazard1Desc.style.display = 'block';
+                    } else {
+                        hazard1Desc.style.display = 'none';
+                    }
+                } else {
+                    hazard1Desc.style.display = 'none';
+                }
+                
+                hazard1Section.style.display = 'block';
+            } else {
+                hazard1Section.style.display = 'none';
+            }
+            
+            // 헤저드2 찾기
+            const hazard2 = hole.hazards.find(h => h.name === '헤저드2');
+            if (hazard2) {
+                const hazard2Dist = calculateDistance(
+                    currentLocation.lat, currentLocation.lng,
+                    hazard2.lat, hazard2.lng
+                );
+                
+                document.getElementById('hazard2Yard').textContent = formatNumber(metersToYards(hazard2Dist));
+                document.getElementById('hazard2Meter').textContent = formatNumber(Math.round(hazard2Dist));
+                
+                // 헤저드2 설명 필터링
+                const hazard2Desc = document.getElementById('hazard2Description');
+                if (hole.description && hole.description.trim()) {
+                    const desc = hole.description.trim();
+                    // "헤저드2" 또는 "헤저드 2" 포함 여부 확인
+                    if (desc.includes('헤저드2') || desc.includes('헤저드 2')) {
+                        hazard2Desc.textContent = desc;
+                        hazard2Desc.style.display = 'block';
+                    } else {
+                        hazard2Desc.style.display = 'none';
+                    }
+                } else {
+                    hazard2Desc.style.display = 'none';
+                }
+                
+                hazard2Section.style.display = 'block';
+            } else {
+                hazard2Section.style.display = 'none';
+            }
+
+            // 샷 거리 표시 (이전 위치가 있을 때만)
+            const shotDistanceSection = document.getElementById('shotDistanceSection');
+            
+            console.log('=== 샷 거리 표시 체크 ===');
+            console.log('이전 위치:', previousLocation);
+            console.log('현재 위치:', currentLocation);
+            
+            if (previousLocation && currentLocation) {
+                const shotDist = calculateDistance(
+                    previousLocation.lat, previousLocation.lng,
+                    currentLocation.lat, currentLocation.lng
+                );
+                
+                console.log('샷 거리 계산:', shotDist, '미터');
+                console.log('샷 거리 야드:', metersToYards(shotDist));
+                
+                const yards = metersToYards(shotDist);
+                const meters = Math.round(shotDist);
+                
+                document.getElementById('shotDistanceYard').textContent = formatNumber(yards);
+                document.getElementById('shotDistanceMeter').textContent = formatNumber(meters);
+                
+                shotDistanceSection.style.display = 'block';
+                console.log('✅ 샷 거리 섹션 표시됨');
+            } else {
+                console.log('❌ 이전 위치 없음 - 샷 거리 숨김');
+                shotDistanceSection.style.display = 'none';
+            }
+
+            // 홀 코스 이미지 표시 (이미지 파일 없으면 숨김)
+            // const holeMapImage = document.getElementById('holeMapImage');
+            // holeMapImage.src = `hole-images/${hole.number}.jpg`;
+            // holeMapImage.alt = `${hole.number}번 홀 코스 맵`;
+
+            document.getElementById('coordsInfo').textContent = 
+                `현재: ${currentLocation.lat.toFixed(6)}, ${currentLocation.lng.toFixed(6)}`;
+
+            document.getElementById('welcomeCard').style.display = 'none';
+            document.getElementById('resultCard').style.display = 'block';
+        }
+
+        // 페이지 로드 시 구글 시트에서 데이터 로드
+        window.addEventListener('DOMContentLoaded', () => {
+            loadGolfCourseData();
+        });
+    </script>
+</body>
+</html>
