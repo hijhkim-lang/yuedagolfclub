@@ -588,6 +588,7 @@
                 <label>현재 홀 선택 <span lang="zh">(选择当前球洞)</span></label>
                 <div class="holes" id="holeButtons"></div>
             </div>
+            <div id="gpsStatusDiv" style="margin-top: 10px; text-align: center; font-size: 13px;"></div>
         </div>
 
         <!-- 측정 버튼 -->
@@ -1024,7 +1025,74 @@
             // 화면을 맨 위로 스크롤 (홀 버튼이 다른 요소에 가려지지 않도록)
             window.scrollTo({ top: 0, behavior: 'smooth' });
             
-            console.log(`${holeNumber}번 홀 선택 - 측정 대기 중`);
+            console.log(`${holeNumber}번 홀 선택 - GPS 자동 준비 시작`);
+            
+            // 홀 선택하면 자동으로 GPS 준비 시작
+            startAutoGPS();
+        }
+
+        // GPS 자동 준비 (홀 선택 시 자동 실행)
+        let gpsWatchId = null;
+        let lastGPSPosition = null;
+        
+        function startAutoGPS() {
+            const statusDiv = document.getElementById('gpsStatusDiv');
+            
+            if (!navigator.geolocation) {
+                statusDiv.innerHTML = '<div style="color: #dc2626; font-size: 12px;">❌ GPS를 지원하지 않는 브라우저입니다</div>';
+                return;
+            }
+            
+            // 이미 GPS 추적 중이면 계속 유지
+            if (gpsWatchId !== null) {
+                console.log('GPS 이미 추적 중 - 계속 유지');
+                return;
+            }
+            
+            statusDiv.innerHTML = '<div style="color: #f59e0b; font-size: 12px;">🔍 GPS 위치 찾는 중...</div>';
+            
+            // GPS 위치 추적 시작
+            gpsWatchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    lastGPSPosition = position;
+                    
+                    // WGS-84 → GCJ-02 변환
+                    const converted = wgs84ToGcj02(position.coords.latitude, position.coords.longitude);
+                    
+                    const accuracy = position.coords.accuracy.toFixed(0);
+                    let statusColor = '#10b981';
+                    let statusIcon = '✅';
+                    
+                    if (accuracy > 50) {
+                        statusColor = '#f59e0b';
+                        statusIcon = '⚠️';
+                    }
+                    
+                    statusDiv.innerHTML = `
+                        <div style="color: ${statusColor}; font-size: 12px;">
+                            ${statusIcon} GPS 준비 완료 (정확도: ${accuracy}m)
+                        </div>
+                    `;
+                    
+                    console.log('GPS 자동 준비 완료:', converted, '정확도:', accuracy + 'm');
+                },
+                (error) => {
+                    statusDiv.innerHTML = '<div style="color: #dc2626; font-size: 12px;">❌ GPS 신호를 찾을 수 없습니다</div>';
+                    
+                    if (gpsWatchId !== null) {
+                        navigator.geolocation.clearWatch(gpsWatchId);
+                        gpsWatchId = null;
+                        lastGPSPosition = null;
+                    }
+                    
+                    console.error('GPS 자동 준비 실패:', error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 60000,
+                    maximumAge: 0
+                }
+            );
         }
 
         // 거리 측정
@@ -1034,6 +1102,16 @@
             
             errorDiv.innerHTML = '';
             btn.disabled = true;
+            
+            // GPS 준비되어 있으면 바로 사용
+            if (lastGPSPosition) {
+                btn.innerHTML = '⚡ 준비된 GPS 사용 중... <span lang="zh">(使用准备好的GPS...)</span>';
+                console.log('=== 준비된 GPS 위치 사용 ===');
+                processGPSPosition(lastGPSPosition);
+                return;
+            }
+            
+            // GPS 준비 안 되어 있으면 새로 가져오기
             btn.innerHTML = '<span class="loading">📍</span> 위치 확인 중... <span lang="zh">(确认位置中...)</span>';
 
             if (!navigator.geolocation) {
@@ -1050,69 +1128,10 @@
             // 매번 클릭할 때마다 현재 위치를 새로 가져옴
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    console.log('=== GPS 위치 수신 (WGS-84) ===');
-                    console.log('수신된 좌표 (WGS-84):', position.coords.latitude, position.coords.longitude);
-                    console.log('정확도:', position.coords.accuracy, '미터');
-                    
-                    // WGS-84 → GCJ-02 변환 (중국 좌표계)
-                    const converted = wgs84ToGcj02(position.coords.latitude, position.coords.longitude);
-                    console.log('변환된 좌표 (GCJ-02):', converted.lat, converted.lng);
-                    
-                    const latDiff = ((converted.lat - position.coords.latitude) * 111000).toFixed(1);
-                    const lngDiff = ((converted.lng - position.coords.longitude) * 111000 * Math.cos(position.coords.latitude * Math.PI / 180)).toFixed(1);
-                    console.log('변환 차이:', latDiff, 'm (위도),', lngDiff, 'm (경도)');
-                    
-                    // 정확도 체크 및 경고 + 좌표 변환 정보 표시
-                    let infoHtml = '';
-                    
-                    if (position.coords.accuracy > 50) {
-                        console.warn('⚠️ GPS 정확도가 낮습니다:', position.coords.accuracy, '미터');
-                        infoHtml += `
-                            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 13px;">
-                                ⚠️ GPS 정확도: ${position.coords.accuracy.toFixed(0)}m<br>
-                                <span lang="zh">(GPS精度: ${position.coords.accuracy.toFixed(0)}米)</span><br>
-                                <span style="font-size: 12px; color: #92400e;">정확도가 낮아 오차가 클 수 있습니다</span>
-                            </div>
-                        `;
-                    }
-                    
-                    // 좌표 변환 정보 표시 (테스트용)
-                    infoHtml += `
-                        <div style="background: #e0f2fe; border: 1px solid #0284c7; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 11px; font-family: monospace;">
-                            📍 <strong>좌표 변환 정보:</strong><br>
-                            WGS-84: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}<br>
-                            GCJ-02: ${converted.lat.toFixed(6)}, ${converted.lng.toFixed(6)}<br>
-                            변환차이: 위도 ${latDiff}m, 경도 ${lngDiff}m
-                        </div>
-                    `;
-                    
-                    errorDiv.innerHTML = infoHtml;
-                    
-                    // 현재 위치 업데이트 (GCJ-02 변환된 좌표 사용)
-                    currentLocation = {
-                        lat: converted.lat,
-                        lng: converted.lng,
-                        accuracy: position.coords.accuracy
-                    };
-                    
-                    console.log('현재 위치 업데이트 (GCJ-02):', currentLocation);
-                    
-                    // 거리 표시
-                    try {
-                        displayDistances();
-                    } catch (error) {
-                        console.error('displayDistances 에러:', error);
-                        alert('에러 발생: ' + error.message);
-                    }
-                    
-                    // 버튼 완전히 재설정
-                    btn.disabled = false;
-                    btn.innerHTML = '🎯 남은 거리 측정 <span lang="zh">(测量剩余距离)</span>';
-                    btn.className = 'measure-btn'; // 클래스 재설정
-                    btn.style.pointerEvents = 'auto'; // 클릭 이벤트 강제 활성화
+                    processGPSPosition(position);
                 },
                 (error) => {
-                    alert('GPS 실패: ' + error.message); // 디버깅용
+                    alert('GPS 실패: ' + error.message);
                     errorDiv.innerHTML = `
                         <div class="error">
                             위치를 가져올 수 없습니다 <span lang="zh">(无法获取位置)</span>: ${error.message}
@@ -1123,11 +1142,78 @@
                     btn.innerHTML = '🎯 남은 거리 측정 <span lang="zh">(测量剩余距离)</span>';
                 },
                 {
-                    enableHighAccuracy: true,  // 고정밀 GPS 사용
-                    timeout: 60000,            // 60초로 증가 (더 정확한 GPS 대기)
-                    maximumAge: 0              // 캐시 사용 안 함 (항상 새로운 위치)
+                    enableHighAccuracy: true,
+                    timeout: 60000,
+                    maximumAge: 0
                 }
             );
+        }
+        
+        // GPS 위치 처리 (공통 함수)
+        function processGPSPosition(position) {
+            const btn = document.getElementById('measureBtn');
+            const errorDiv = document.getElementById('errorDiv');
+            
+            console.log('=== GPS 위치 수신 (WGS-84) ===');
+            console.log('수신된 좌표 (WGS-84):', position.coords.latitude, position.coords.longitude);
+            console.log('정확도:', position.coords.accuracy, '미터');
+            
+            // WGS-84 → GCJ-02 변환 (중국 좌표계)
+            const converted = wgs84ToGcj02(position.coords.latitude, position.coords.longitude);
+            console.log('변환된 좌표 (GCJ-02):', converted.lat, converted.lng);
+            
+            const latDiff = ((converted.lat - position.coords.latitude) * 111000).toFixed(1);
+            const lngDiff = ((converted.lng - position.coords.longitude) * 111000 * Math.cos(position.coords.latitude * Math.PI / 180)).toFixed(1);
+            console.log('변환 차이:', latDiff, 'm (위도),', lngDiff, 'm (경도)');
+            
+            // 정확도 체크 및 경고 + 좌표 변환 정보 표시
+            let infoHtml = '';
+            
+            if (position.coords.accuracy > 50) {
+                console.warn('⚠️ GPS 정확도가 낮습니다:', position.coords.accuracy, '미터');
+                infoHtml += `
+                    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 13px;">
+                        ⚠️ GPS 정확도: ${position.coords.accuracy.toFixed(0)}m<br>
+                        <span lang="zh">(GPS精度: ${position.coords.accuracy.toFixed(0)}米)</span><br>
+                        <span style="font-size: 12px; color: #92400e;">정확도가 낮아 오차가 클 수 있습니다</span>
+                    </div>
+                `;
+            }
+            
+            // 좌표 변환 정보 표시 (테스트용)
+            infoHtml += `
+                <div style="background: #e0f2fe; border: 1px solid #0284c7; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 11px; font-family: monospace;">
+                    📍 <strong>좌표 변환 정보:</strong><br>
+                    WGS-84: ${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}<br>
+                    GCJ-02: ${converted.lat.toFixed(6)}, ${converted.lng.toFixed(6)}<br>
+                    변환차이: 위도 ${latDiff}m, 경도 ${lngDiff}m
+                </div>
+            `;
+            
+            errorDiv.innerHTML = infoHtml;
+            
+            // 현재 위치 업데이트 (GCJ-02 변환된 좌표 사용)
+            currentLocation = {
+                lat: converted.lat,
+                lng: converted.lng,
+                accuracy: position.coords.accuracy
+            };
+            
+            console.log('현재 위치 업데이트 (GCJ-02):', currentLocation);
+            
+            // 거리 표시
+            try {
+                displayDistances();
+            } catch (error) {
+                console.error('displayDistances 에러:', error);
+                alert('에러 발생: ' + error.message);
+            }
+            
+            // 버튼 완전히 재설정
+            btn.disabled = false;
+            btn.innerHTML = '🎯 남은 거리 측정 <span lang="zh">(测量剩余距离)</span>';
+            btn.className = 'measure-btn';
+            btn.style.pointerEvents = 'auto';
         }
 
         // 거리 표시
