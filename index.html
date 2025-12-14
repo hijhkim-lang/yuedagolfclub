@@ -692,10 +692,8 @@
 
     <script>
         // 射阳岛悦达高尔夫球会 - 실제 측정 좌표 데이터
-        // 구글 시트 설정
-        const SHEET_ID = '1SFYcb0BRbNdWjFHpYbSz7WCKlsinmXkEWfW5X4FMZu0';
-        const SHEET_NAME = '강소열달골프장';
-        const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}`;
+        // CSV 파일 URL (GitHub)
+        const CSV_URL = 'https://raw.githubusercontent.com/hijhkim-lang/yuedagolfclub/main/yueda_data.csv';
 
         let GOLF_COURSE = {
             name: "射阳岛悦达高尔夫球会",
@@ -779,36 +777,56 @@
             }
         }
 
-        // 구글 시트에서 데이터 로드
+        // CSV에서 데이터 로드
         async function loadGolfCourseData() {
             try {
-                console.log('=== 골프장 데이터 로드 시작 ===');
-                console.log('시트 URL:', SHEET_URL);
+                console.log('=== 골프장 데이터 로드 시작 (CSV) ===');
+                console.log('CSV URL:', CSV_URL);
                 
-                const response = await fetch(SHEET_URL);
+                const response = await fetch(CSV_URL);
                 const text = await response.text();
                 
-                console.log('응답 받음, 길이:', text.length);
+                console.log('CSV 데이터 받음, 길이:', text.length);
                 
-                // Google Sheets API 응답 파싱
-                const jsonData = JSON.parse(text.substring(47).slice(0, -2));
-                const rows = jsonData.table.rows;
+                // CSV 파싱
+                const lines = text.split('\n');
+                const headers = lines[0].split(',');
                 
-                console.log('전체 행 수:', rows.length);
+                console.log('헤더:', headers);
+                console.log('전체 행 수:', lines.length);
                 
                 GOLF_COURSE.holes = [];
                 
-                for (let i = 1; i < rows.length; i++) { // 첫 행은 헤더이므로 스킵
-                    const row = rows[i];
-                    if (!row.c || !row.c[0]) continue;
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
                     
-                    const holeName = row.c[0]?.v || ''; // A열: 홀이름
-                    const par = row.c[1]?.v || ''; // B열: 파
-                    const greenCoords = row.c[2]?.v || ''; // C열: 그린중앙 (도분법)
-                    const hazard1Coords = row.c[3]?.v || ''; // D열: 헤저드1 (도분법)
-                    const hazard2Coords = row.c[4]?.v || ''; // E열: 헤저드2 (도분법)
-                    const description = row.c[5]?.v || ''; // F열: 설명
-                    const descriptionChinese = row.c[6]?.v || ''; // G열: 중국어 설명
+                    // CSV 파싱 (쉼표로 구분, 따옴표 처리)
+                    const cols = [];
+                    let currentCol = '';
+                    let inQuotes = false;
+                    
+                    for (let j = 0; j < line.length; j++) {
+                        const char = line[j];
+                        
+                        if (char === '"') {
+                            inQuotes = !inQuotes;
+                        } else if (char === ',' && !inQuotes) {
+                            cols.push(currentCol.trim());
+                            currentCol = '';
+                        } else {
+                            currentCol += char;
+                        }
+                    }
+                    cols.push(currentCol.trim());
+                    
+                    const holeName = cols[0] || '';
+                    const par = cols[1] || '';
+                    const greenCoords = cols[2] || '';
+                    const hazard1Coords = cols[3] || '';
+                    const hazard2Coords = cols[4] || '';
+                    const description = cols[5] || '';
+                    const descriptionChinese = cols[6] || '';
                     
                     console.log(`행 ${i}:`, holeName, '| 그린:', greenCoords);
                     
@@ -822,7 +840,7 @@
                     // Par 추출 (예: "PAR4" -> 4)
                     const parNumber = parseInt(par.match(/\d+/)?.[0] || '4');
                     
-                    // 그린 좌표 파싱 (도분법 → 십진법)
+                    // 그린 좌표 파싱
                     const greenDD = convertDMStoDD(greenCoords);
                     if (!greenDD) {
                         console.warn(`${holeNumber}번홀 그린 좌표 파싱 실패:`, greenCoords);
@@ -839,11 +857,11 @@
                             lng: greenDD.lng
                         },
                         hazards: [],
-                        description: description || '', // 설명 추가
-                        descriptionChinese: descriptionChinese || '' // 중국어 설명 추가
+                        description: description || '',
+                        descriptionChinese: descriptionChinese || ''
                     };
                     
-                    // 해저드1 좌표 파싱 (도분법 → 십진법)
+                    // 해저드1 좌표 파싱
                     if (hazard1Coords && hazard1Coords.trim()) {
                         const hazard1DD = convertDMStoDD(hazard1Coords);
                         if (hazard1DD) {
@@ -855,7 +873,7 @@
                         }
                     }
                     
-                    // 해저드2 좌표 파싱 (도분법 → 십진법)
+                    // 해저드2 좌표 파싱
                     if (hazard2Coords && hazard2Coords.trim()) {
                         const hazard2DD = convertDMStoDD(hazard2Coords);
                         if (hazard2DD) {
